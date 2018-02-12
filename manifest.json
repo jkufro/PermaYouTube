@@ -2,7 +2,7 @@
   "manifest_version": 2,
 
   "name": "permaYouTube",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Play your videos anywhere on YouTube.",
 
   "icons": { "128": "icon.png" },
@@ -16,7 +16,8 @@
   "content_scripts": [
     {
       "matches": ["http://*.youtube.com/*", "https://www.youtube.com/*"],
-      "js": ["jquery-3.2.1.min.js", "PYT.js"]
+      "js": ["jquery-3.3.1.min.js", "jquery-ui.js", "PYT.js"],
+      "run_at": "document_end"
     }
   ],
 

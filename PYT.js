@@ -7,21 +7,6 @@ var iframeWidth = iframeWidthInt + "px"
 var jqInject = "https://code.jquery.com/jquery-1.12.4.js";
 var jquiInject = "https://code.jquery.com/ui/1.12.1/jquery-ui.js";
 
-var draggableInject = `
-// from https://jqueryui.com/draggable/
-$( function() {
-    $( "#draggable" ).draggable({ containment: "window", scroll: false });
-} );
-
-$("#draggable").mousedown(function() {
-	document.getElementById("bigDragger").style.display = 'inline';
-});
-
-$("#draggable").mouseup(function() {
-	document.getElementById("bigDragger").style.display = 'none';
-});
-`;
-
 var lastVid = {
 	embedUrl: "https://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1",
 	time: "0",
@@ -44,18 +29,25 @@ function insertJq() {
 	jqui.type = 'text/javascript';
 	jqui.src = jquiInject;
 
-	document.body.appendChild(jq);
-	document.body.appendChild(jqui);
-	
-	setTimeout(insertDraggable, 1000);
+	//document.body.appendChild(jq);
+	//document.body.appendChild(jqui);
+
+	setTimeout(makeDraggable, 1000);
 }
 
 
-function insertDraggable() {
-	var drgFunct = document.createElement('script');
-	drgFunct.type = 'text/javascript';
-	drgFunct.appendChild(document.createTextNode(draggableInject));
-	document.body.appendChild(drgFunct);
+function makeDraggable() {
+	$( function() {
+	    $( "#draggable" ).draggable({ containment: "window", scroll: false });
+	} );
+
+	$("#draggable").mousedown(function() {
+		document.getElementById("bigDragger").style.display = 'inline';
+	});
+
+	$("#draggable").mouseup(function() {
+		document.getElementById("bigDragger").style.display = 'none';
+	});
 }
 
 
@@ -64,7 +56,7 @@ function insertPYT() {
 	pytInject.setAttribute("id", "draggable");
 	pytInject.setAttribute("class", "ui-widget-content");
 	pytInject.setAttribute("style", "top:70px;right:10px;position:fixed;z-index:99900;width:" + iframeWidth + ";height:227px;background:rgb(193, 47, 51);");
-	
+
 	PYT = document.createElement('iframe');
 	PYT.setAttribute("id", "pytPlayer");
 	PYT.setAttribute("type", "text/html");
@@ -136,7 +128,7 @@ function keepIframeInWindow() {
 	stdVals = stdPixelValues(curTop, minTop);
 	curTop = stdVals.v1;
 	minTop = stdVals.v2;
-	
+
 	var curBottom = getIframeBottom();
 	curBottom = parseInt(curBottom.slice(0, curBottom.length - 2), 10).toString() + "px";
 	var minBottom = "0px";
@@ -310,8 +302,8 @@ function saveNormalPlaybackStats() {
 
 	// save to chrome data
 	saveChromeData();
-} 
-  
+}
+
 
 function isOnVideo() {
 	var videoId = getId(window.location.href);
@@ -352,7 +344,7 @@ function initIframeData() {
 	// can't display null video
 	if (lastVid.embedUrl == null) {
 		hideIframe();
-	} 
+	}
 	else {
 		var neededTime = lastVid.time;
 		var initSeek = setInterval(function() {
@@ -363,7 +355,7 @@ function initIframeData() {
 		        // avoid calling before the video is ready
 		        setTimeout(function() {
 		        	seekToIframe(neededTime);
-		    	}, 500);   
+		    	}, 500);
 			}
 		}, 100); // check every 100ms
 
@@ -373,13 +365,13 @@ function initIframeData() {
 				var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].paused;
 			    if (element == false) {
 			        clearInterval(ensurePaused);
-			        pauseIframe(); 
+			        pauseIframe();
 				}
 			}, 100); // check every 100ms
 		}
 	}
 
-	if (lastVid.minimized == true) { 
+	if (lastVid.minimized == true) {
 		document.getElementById("minimizer").innerHTML = "&lt;";
 		document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
 	} else {
@@ -424,6 +416,39 @@ function updateIframeLink() {
 }
 
 
+// minimizing functionality
+function allowMinimize() {
+	$("#minimizer").click(function() {
+		lastVid.minimized = ! lastVid.minimized;
+		if (lastVid.minimized == true) {
+			document.getElementById("minimizer").innerHTML = "&lt;";
+			document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
+		} else {
+			document.getElementById("minimizer").innerHTML = "&gt;";
+			document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
+		}
+	});
+
+	$("#draggable").click(function() {
+		if (lastVid.minimized == true) {
+			document.getElementById("minimizer").innerHTML = "&gt;";
+			document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
+			lastVid.minimized = false;
+		}
+	}).children().click(function(e) {
+	  return false;
+	});;
+}
+
+
+function allowClose() {
+	$("#closer").click(function() {
+		hideIframe();
+		lastVid.embedUrl = null;
+	});
+}
+
+
 function mainLoop() {
 	var lastIsOnVideo = isOnVideo();
 	setInterval(function(){
@@ -453,49 +478,32 @@ function mainLoop() {
 	}, 250);
 }
 
+
+function waitForIframeThenRun() {
+	// wait until the iframe is usable to continue
+	var iFrameExists = setInterval(function() {
+	   var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0];
+	   // if the #pytPlayer (the iframe) element exists then break and start the main loop
+	   if (element != undefined) {
+	      initIframeData();
+	      clearInterval(iFrameExists);
+	      setTimeout(function() {
+	      	  mainLoop();
+	      }, 750);
+	   }
+	}, 100); // check every 100ms
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-getChromeData();
-preparePlayback();
-
-// wait until the iframe is usable to continue
-var iFrameExists = setInterval(function() {
-   var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0];
-   if (element != undefined) {
-      initIframeData();
-      clearInterval(iFrameExists);
-      setTimeout(function() {
-      	  mainLoop();
-      }, 750);
-   }
-}, 100); // check every 100ms
+setTimeout(function() {
+	getChromeData();
+	preparePlayback();
+	allowMinimize();
+	allowClose();
+	waitForIframeThenRun();
+}, 500)
 
 
-// minimizing functionality
-$("#minimizer").click(function() {
-	lastVid.minimized = ! lastVid.minimized;
-	if (lastVid.minimized == true) { 
-		document.getElementById("minimizer").innerHTML = "&lt;";
-		document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
-	} else {
-		document.getElementById("minimizer").innerHTML = "&gt;";
-		document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
-	}
-});
-
-$("#draggable").click(function() {
-	if (lastVid.minimized == true) { 
-		document.getElementById("minimizer").innerHTML = "&gt;";
-		document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
-		lastVid.minimized = false;
-	}
-}).children().click(function(e) {
-  return false;
-});;
-
-$("#closer").click(function() {
-	hideIframe();
-	lastVid.embedUrl = null;
-});
