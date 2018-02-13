@@ -362,6 +362,7 @@ function initIframeData() {
 		// make sure the video pauses before autoplay starts
 		if (lastVid.paused == true) {
 			var ensurePaused = setInterval(function() {
+				// keep checking for it until it exists
 				var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].paused;
 			    if (element == false) {
 			        clearInterval(ensurePaused);
@@ -450,18 +451,24 @@ function allowClose() {
 
 
 function mainLoop() {
+	// initialize the variable to be used in the loop
+	// references if the last check was on a video or not
 	var lastIsOnVideo = isOnVideo();
 	setInterval(function(){
+		// if we're on a video, or we dont have a set video
 		if (isOnVideo() == true || lastVid.embedUrl == "" || lastVid.embedUrl == null) {
+			// if any of the above are true, then the mini-view shouldnt be showing
+			hideIframe();
+			// have to be on a video to save any data
 			if (isOnVideo() == true) {
 				saveNormalPlaybackStats();
 				updateIframeLink();
 			}
-			hideIframe();
 		} else {
-			// just moved from video to another page
+			// if we just moved from a video to another page
 			if (lastIsOnVideo == true) {
 				seekToIframe(lastVid.time);
+				if (lastVid.paused == true) { pauseIframe() } else { playIframe() }
 			}
 
 			// placement if is or isnt minimized
@@ -485,6 +492,7 @@ function waitForIframeThenRun() {
 	   var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0];
 	   // if the #pytPlayer (the iframe) element exists then break and start the main loop
 	   if (element != undefined) {
+
 	      initIframeData();
 	      clearInterval(iFrameExists);
 	      setTimeout(function() {
