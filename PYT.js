@@ -14,7 +14,9 @@ var lastVid = {
 	left: "0",
 	top: "0",
 	minimized: false,
-	lastSave: 0
+	lastSave: 0,
+	width: "350px",
+	height: "227px"
 };
 
 var pytInject;
@@ -38,8 +40,13 @@ function insertJq() {
 
 function makeDraggable() {
 	$( function() {
-	    $( "#draggable" ).draggable({ containment: "window", scroll: false });
+	    $( "#draggable" ).draggable({ containment: "window", scroll: false }).resizable({maxHeight: 563,
+																				         maxWidth: 1000,
+																				         minHeight: 200,
+																				         minWidth: 200,
+																				     	 alsoResize: "#pytPlayer"});;
 	} );
+
 
 	$("#draggable").mousedown(function() {
 		document.getElementById("bigDragger").style.display = 'inline';
@@ -60,7 +67,7 @@ function insertPYT() {
 	PYT = document.createElement('iframe');
 	PYT.setAttribute("id", "pytPlayer");
 	PYT.setAttribute("type", "text/html");
-	PYT.setAttribute("style", "width:" + iframeWidth + ";height:197px;margin-top:15px;z-index:100100");
+	PYT.setAttribute("style", "width:100%;height:87%;margin-top:15px;z-index:100100");
 	PYT.setAttribute("src", "https://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1");
 	PYT.setAttribute("frameborder","0");
 
@@ -76,13 +83,20 @@ function insertPYT() {
 	closer.setAttribute("style", "cursor:pointer;position:absolute;right:5px;;font-size:10pt;color:white;padding-left:5px;font-weight:900;");
 	closer.appendChild(document.createTextNode("X"));
 
+	resizer = document.createElement("img");
+	resizer.setAttribute("id", "resizer");
+	resizer.setAttribute("type", "text/html");
+	resizer.setAttribute("style", "cursor:pointer;position:absolute;right:0px;bottom:0px;color:white;padding-left:5px;font-weight:900;");
+	resizer.setAttribute("src", chrome.extension.getURL("resizable.png"));
+
 	bigDragger = document.createElement('div');
 	bigDragger.setAttribute("id", "bigDragger");
 	bigDragger.setAttribute("type", "text/html");
-	bigDragger.setAttribute("style", "margin-top:30px;z-index:100000;position:absolute;width:" + iframeWidth + ";height:197px");
+	bigDragger.setAttribute("style", "margin-top:30px;z-index:100000;position:absolute;width:100%;height:100%");
 
 	pytInject.appendChild(minimizer);
 	pytInject.appendChild(closer);
+	pytInject.appendChild(resizer);
 	pytInject.appendChild(bigDragger);
 	pytInject.appendChild(PYT);
 	document.body.appendChild(pytInject);
@@ -109,6 +123,7 @@ function intToPixelValue(int) {
 
 
 function keepIframeInWindow() {
+	iframeWidthInt = parseInt(lastVid.width.slice(0, lastVid.width.length - 2)) + 20
 	// find where the window currently is, saving the integer version and the string version
 	// also find the min and max values that the window can be in
 	var curLeft = getIframeLeft();
@@ -249,7 +264,9 @@ function saveTinyPlaybackStats() {
 		left: getIframeLeft(),
 		top: getIframeTop(),
 		minimized: lastVid.minimized,
-		lastSave: (new Date().getTime() / 1000)
+		lastSave: (new Date().getTime() / 1000),
+		width: document.getElementById("draggable").style.width,
+		height: document.getElementById("draggable").style.height
 	};
 
 	// save to chrome data
@@ -265,17 +282,27 @@ function saveChromeData() {
 	chrome.storage.local.set({ "top": lastVid.top}, function(){ });
 	chrome.storage.local.set({ "minimized": lastVid.minimized}, function(){ });
 	chrome.storage.local.set({ "lastSave": lastVid.lastSave}, function(){ });
+	chrome.storage.local.set({ "width": lastVid.width}, function(){ });
+	chrome.storage.local.set({ "height": lastVid.height}, function(){ });
 }
 
 
 function getChromeData() {
-	chrome.storage.local.get("embedUrl", function(result){ lastVid.embedUrl = result.embedUrl; });
-	chrome.storage.local.get("time", function(result){ lastVid.time = result.time; });
-	chrome.storage.local.get("paused", function(result){ lastVid.paused = result.paused; });
-	chrome.storage.local.get("left", function(result){ lastVid.left = result.left; });
-	chrome.storage.local.get("top", function(result){ lastVid.top = result.top; });
-	chrome.storage.local.get("minimized", function(result){ lastVid.minimized = result.minimized; });
-	chrome.storage.local.get("lastSave", function(result){ lastVid.lastSave = result.lastSave; });
+	// if width is undefined in the chrome data then we can assume that nothing is set
+	// if this is true we just need to skip until the script does set the values
+	chrome.storage.local.get("width", function(result){
+		if (result.width) {
+			chrome.storage.local.get("embedUrl", function(result){ lastVid.embedUrl = result.embedUrl; });
+			chrome.storage.local.get("time", function(result){ lastVid.time = result.time; });
+			chrome.storage.local.get("paused", function(result){ lastVid.paused = result.paused; });
+			chrome.storage.local.get("left", function(result){ lastVid.left = result.left; });
+			chrome.storage.local.get("top", function(result){ lastVid.top = result.top; });
+			chrome.storage.local.get("minimized", function(result){ lastVid.minimized = result.minimized; });
+			chrome.storage.local.get("lastSave", function(result){ lastVid.lastSave = result.lastSave; });
+			chrome.storage.local.get("width", function(result){ lastVid.width = result.width; });
+			chrome.storage.local.get("height", function(result){ lastVid.height = result.height; });
+		}
+	});
 }
 
 
@@ -313,6 +340,11 @@ function initIframeData() {
 	var difference = startTime - lastVid.lastSave;
 	var maxDifference = 1800;
 
+	// set the width and height
+	document.getElementById("draggable").style.width = lastVid.width
+	document.getElementById("draggable").style.height = lastVid.height
+	document.getElementById("pytPlayer").style.height = (parseInt(lastVid.height.slice(0, lastVid.height.length - 2)) - 28) + "px";
+
 	// set the link
 	document.getElementById("pytPlayer").src = lastVid.embedUrl;
 
@@ -328,7 +360,7 @@ function initIframeData() {
 
 	// need to hide if user came back after a while
 	if (difference > maxDifference) {
-		console.log("timeout")
+		console.log("PYT timeout")
 		lastVid.embedUrl = null;
 	}
 
@@ -410,6 +442,7 @@ function updateIframeLink() {
 
 // minimizing functionality
 function allowMinimize() {
+	iframeWidthInt = parseInt(lastVid.width.slice(0, lastVid.width.length - 2))
 	$("#minimizer").click(function() {
 		lastVid.minimized = ! lastVid.minimized;
 		if (lastVid.minimized == true) {
@@ -496,9 +529,10 @@ function waitForIframeThenRun() {
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
+console.log(lastVid);
+getChromeData();
 
 setTimeout(function() {
-	getChromeData();
 	preparePlayback();
 	allowMinimize();
 	allowClose();
