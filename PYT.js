@@ -109,53 +109,44 @@ function intToPixelValue(int) {
 
 
 function keepIframeInWindow() {
+	// find where the window currently is, saving the integer version and the string version
+	// also find the min and max values that the window can be in
 	var curLeft = getIframeLeft();
-	curLeft = parseInt(curLeft.slice(0, curLeft.length - 2), 10).toString() + "px";
+	var curLeftInt = parseInt(curLeft.slice(0, curLeft.length - 2), 10);
+
 	var minLeft = "0px";
-	stdVals = stdPixelValues(curLeft, minLeft);
-	curLeft = stdVals.v1;
-	minLeft = stdVals.v2;
+	var minLeftInt = 0;
 
 	var maxLeft = parseInt(window.innerWidth - iframeWidthInt) + "px";
-	stdVals = stdPixelValues(curLeft, maxLeft);
-	curLeft = stdVals.v1;
-	minLeft = stdVals.v2;
-
+	var maxLeftInt = parseInt(window.innerWidth - iframeWidthInt);
 
 	var curTop = getIframeTop();
-	curTop = parseInt(curTop.slice(0, curTop.length - 2), 10).toString() + "px";
+	var curTopInt = parseInt(curTop.slice(0, curTop.length - 2), 10);
+
 	var minTop = "0px";
-	stdVals = stdPixelValues(curTop, minTop);
-	curTop = stdVals.v1;
-	minTop = stdVals.v2;
+	var minTopInt = 0;
 
 	var curBottom = getIframeBottom();
-	curBottom = parseInt(curBottom.slice(0, curBottom.length - 2), 10).toString() + "px";
+	var curBottomInt = parseInt(curBottom.slice(0, curBottom.length - 2), 10);
+
 	var minBottom = "0px";
-	stdVals = stdPixelValues(curBottom, minBottom);
-	curBottom = stdVals.v1;
-	minBottom = stdVals.v2;
+	var minBottomInt = 0;
 
-
-	// compare current right/bottom to max right/bottom
-	if (curLeft > maxLeft) {
+	// compare current left/bottom to maximum left/bottom
+	if (curLeftInt > maxLeftInt) {
 		document.getElementById("draggable").style.left = maxLeft;
 	}
-	if (curBottom < minBottom) {
+	if (curBottomInt < minBottomInt) {
 		document.getElementById("draggable").style.top = null;
 		document.getElementById("draggable").style.bottom = minBottom;
 	}
 
-	curLeft = parseInt(curLeft.slice(0, curLeft.length - 2), 10).toString() + "px";
-	var minLeft = "0px";
-	stdVals = stdPixelValues(curLeft, minLeft);
-
-	// compare current left/top to max left/top
-	if (curLeft < minLeft) {
+	// compare current the left/top to minimum left/top
+	if (curLeftInt < minLeftInt) {
 		document.getElementById("draggable").style.right = null;
 		document.getElementById("draggable").style.left = minLeft;
 	}
-	if (curTop < minTop) {
+	if (curTopInt < minTopInt) {
 		document.getElementById("draggable").style.bottom = null;
 		document.getElementById("draggable").style.top = minTop;
 	}
@@ -328,7 +319,7 @@ function initIframeData() {
 	// set the position
 	setIframePos(lastVid.left, lastVid.top);
 
-	// set the visibility
+	// set the visibility based on the saved values
 	if (isOnVideo() == false){
 		document.getElementById("draggable").style.visibility = 'visible';
 	} else {

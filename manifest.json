@@ -2,7 +2,7 @@
   "manifest_version": 2,
 
   "name": "permaYouTube",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Play your videos anywhere on YouTube.",
 
   "icons": { "128": "icon.png" },
