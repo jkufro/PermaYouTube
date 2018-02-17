@@ -55,7 +55,7 @@ function insertPYT() {
 	pytInject = document.createElement('div');
 	pytInject.setAttribute("id", "draggable");
 	pytInject.setAttribute("class", "ui-widget-content");
-	pytInject.setAttribute("style", "top:70px;right:10px;position:fixed;z-index:99900;width:" + iframeWidth + ";height:227px;background:rgb(193, 47, 51);");
+	pytInject.setAttribute("style", "top:70px;right:10px;position:fixed;z-index:99900;width:" + iframeWidth + ";height:227px;background:rgba(218, 42, 42, 0.9);");
 
 	PYT = document.createElement('iframe');
 	PYT.setAttribute("id", "pytPlayer");
@@ -67,7 +67,7 @@ function insertPYT() {
 	minimizer = document.createElement('div');
 	minimizer.setAttribute("id", "minimizer");
 	minimizer.setAttribute("type", "text/html");
-	minimizer.setAttribute("style", "cursor:pointer;position:absolute;font-size:10pt;color:white;padding-left:5px;font-weight:900;")
+	minimizer.setAttribute("style", "cursor:pointer;position:absolute;font-size:10pt;color:white;padding-left:5px;padding-right:5px;font-weight:900;")
 	minimizer.appendChild(document.createTextNode(">"));
 
 	closer = document.createElement("div");
