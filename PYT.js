@@ -43,7 +43,7 @@ function makeDraggable() {
 	    $( "#draggable" ).draggable({ containment: "window", scroll: false }).resizable({maxHeight: 563,
 																				         maxWidth: 1000,
 																				         minHeight: 200,
-																				         minWidth: 200,
+																				         minWidth: 300,
 																				     	 alsoResize: "#pytPlayer"});;
 	} );
 
