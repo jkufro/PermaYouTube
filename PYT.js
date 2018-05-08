@@ -347,7 +347,6 @@ function initIframeData(callback) {
 
 	// need to hide if user came back after a while
 	if (difference > maxDifference) {
-		console.log("PYT timeout")
 		lastVid.embedUrl = null;
 	}
 
@@ -486,7 +485,7 @@ function mainLoop() {
 	// references if the last check was on a video or not
 	var lastIsOnVideo = isOnVideo();
 	setInterval(function(){
-		// if we're on a video, or we dont have a set video
+		// if we're on a video, or we dont have a set video that means the iframe should be hidden
 		if (isOnVideo() == true || lastVid.embedUrl == "" || lastVid.embedUrl == null) {
 			// if any of the above are true, then the mini-view shouldnt be showing
 			hideIframe();
