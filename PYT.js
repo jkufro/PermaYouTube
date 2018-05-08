@@ -4,8 +4,6 @@
 var iframeWidthInt = 350;
 var iframeWidth = iframeWidthInt + "px"
 
-var jqInject = "https://code.jquery.com/jquery-1.12.4.js";
-var jquiInject = "https://code.jquery.com/ui/1.12.1/jquery-ui.js";
 
 var lastVid = {
 	embedUrl: "https://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1",
@@ -90,18 +88,6 @@ function insertPYT(callback) {
 }
 
 
-function stdPixelValues(v1, v2) {
-	var result = {
-		v1: v1,
-		v2: v2
-	}
-	stdlength = Math.max(v1.length, v2.length);
-	while (result.v1.length < stdlength) { result.v1 = "0" + result.v1; }
-	while (result.v2.length < stdlength) { result.v2 = "0" + result.v2; }
-	return result;
-}
-
-
 function intToPixelValue(int) {
 	return int.toString() + "px";
 }
@@ -150,13 +136,6 @@ function keepIframeInWindow() {
 		document.getElementById("draggable").style.bottom = null;
 		document.getElementById("draggable").style.top = minTop;
 	}
-}
-
-
-// inserts the iFrame and everything needed to support it
-function preparePlayback() {
-	insertPYT();
-	makeDraggable();
 }
 
 
