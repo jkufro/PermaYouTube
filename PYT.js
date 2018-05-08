@@ -19,52 +19,34 @@ var lastVid = {
 	height: "227px"
 };
 
-var pytInject;
-var PYT;
-
-function insertJq() {
-	var jq = document.createElement('script');
-	jq.type = 'text/javascript';
-	jq.src = jqInject;
-
-	var jqui = document.createElement('script');
-	jqui.type = 'text/javascript';
-	jqui.src = jquiInject;
-
-	//document.body.appendChild(jq);
-	//document.body.appendChild(jqui);
-
-	setTimeout(makeDraggable, 1000);
-}
-
 
 function makeDraggable() {
-	$( function() {
-	    $( "#draggable" ).draggable({ containment: "window", scroll: false }).resizable({maxHeight: 563,
-																				         maxWidth: 1000,
-																				         minHeight: 200,
-																				         minWidth: 300,
-																				     	 alsoResize: "#pytPlayer"});;
-	} );
+    // make the viewing window draggable with these options
+    $( "#draggable" ).draggable({ containment: "window", scroll: false }).resizable({maxHeight: 563,
+																			         maxWidth: 1000,
+																			         minHeight: 200,
+																			         minWidth: 300,
+																			     	 alsoResize: "#pytPlayer"});
 
-
+	// this makes it so that when the user is dragging the window
+	// around the mouse doesn't get caught inside the iframe
+	// and stop the dragging abruptly
 	$("#draggable").mousedown(function() {
 		document.getElementById("bigDragger").style.display = 'inline';
 	});
-
 	$("#draggable").mouseup(function() {
 		document.getElementById("bigDragger").style.display = 'none';
 	});
 }
 
 
-function insertPYT() {
-	pytInject = document.createElement('div');
+function insertPYT(callback) {
+	var pytInject = document.createElement('div');
 	pytInject.setAttribute("id", "draggable");
 	pytInject.setAttribute("class", "ui-widget-content");
 	pytInject.setAttribute("style", "top:70px;right:10px;position:fixed;z-index:99900;width:" + iframeWidth + ";height:227px;background:rgba(218, 42, 42, 0.9);");
 
-	PYT = document.createElement('iframe');
+	var PYT = document.createElement('iframe');
 	PYT.setAttribute("id", "pytPlayer");
 	PYT.setAttribute("type", "text/html");
 	PYT.setAttribute("style", "width:100%;height:87%;margin-top:15px;z-index:100100");
@@ -102,6 +84,9 @@ function insertPYT() {
 	document.body.appendChild(pytInject);
 	document.getElementById("draggable").style.visibility = 'hidden';
 	document.getElementById("bigDragger").style.display = 'none';
+
+    // do the callback
+    callback();
 }
 
 
@@ -171,7 +156,7 @@ function keepIframeInWindow() {
 // inserts the iFrame and everything needed to support it
 function preparePlayback() {
 	insertPYT();
-	insertJq();
+	makeDraggable();
 }
 
 
@@ -287,7 +272,7 @@ function saveChromeData() {
 }
 
 
-function getChromeData() {
+function getChromeData(callback) {
 	// if width is undefined in the chrome data then we can assume that nothing is set
 	// if this is true we just need to skip until the script does set the values
 	chrome.storage.local.get("width", function(result){
@@ -303,6 +288,8 @@ function getChromeData() {
 			chrome.storage.local.get("height", function(result){ lastVid.height = result.height; });
 		}
 	});
+	// run the callback
+	callback();
 }
 
 
@@ -336,7 +323,7 @@ function isOnVideo() {
 
 var iframeVideo;
 var startTime = (new Date().getTime() / 1000);
-function initIframeData() {
+function initIframeData(callback) {
 	var difference = startTime - lastVid.lastSave;
 	var maxDifference = 1800;
 
@@ -402,6 +389,9 @@ function initIframeData() {
 		document.getElementById("minimizer").innerHTML = "&gt;";
 		document.getElementById("draggable").style.left = lastVid.left;
 	}
+
+	// run the callback
+	callback();
 }
 
 
@@ -440,29 +430,46 @@ function updateIframeLink() {
 }
 
 
+// set the position of the window off to the side and change the icon
+function minimize() {
+    document.getElementById("minimizer").innerHTML = "&lt;";
+    document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
+    lastVid.minimized = true;
+}
+
+
+// set the position of the window back into view and change the icon
+function unminimize() {
+    document.getElementById("minimizer").innerHTML = "&gt;";
+    document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
+    lastVid.minimized = false;
+}
+
 // minimizing functionality
 function allowMinimize() {
+    // get the iframe's width as an integer
 	iframeWidthInt = parseInt(lastVid.width.slice(0, lastVid.width.length - 2))
+
+    // if the user clicks the minimizer button while not already minimized,
+    // then put the window to the right side of the screen only slightly visible.
+    // if it is already minimized, then that means the user wants to unminimize
 	$("#minimizer").click(function() {
-		lastVid.minimized = ! lastVid.minimized;
-		if (lastVid.minimized == true) {
-			document.getElementById("minimizer").innerHTML = "&lt;";
-			document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
+		if (lastVid.minimized == false) {
+			minimize();
 		} else {
-			document.getElementById("minimizer").innerHTML = "&gt;";
-			document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
-		}
+            unminimize();
+        }
 	});
 
+    // if the user clicks anywhere on the window while it's minimized,
+    // then put the window back into view
 	$("#draggable").click(function() {
 		if (lastVid.minimized == true) {
-			document.getElementById("minimizer").innerHTML = "&gt;";
-			document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
-			lastVid.minimized = false;
+			unminimize();
 		}
-	}).children().click(function(e) {
+	}).children().click(function(e) { // this makes the minimizer easier to click
 	  return false;
-	});;
+	});
 }
 
 
@@ -514,14 +521,11 @@ function waitForIframeThenRun() {
 	// wait until the iframe is usable to continue
 	var iFrameExists = setInterval(function() {
 	   var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0];
+
 	   // if the #pytPlayer (the iframe) element exists then break and start the main loop
 	   if (element != undefined) {
-
-	      initIframeData();
-	      clearInterval(iFrameExists);
-	      setTimeout(function() {
-	      	  mainLoop();
-	      }, 750);
+	      initIframeData(mainLoop);
+	      clearInterval(iFrameExists); // don't let the loop happen again
 	   }
 	}, 100); // check every 100ms
 }
@@ -529,14 +533,16 @@ function waitForIframeThenRun() {
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
-console.log(lastVid);
-getChromeData();
 
-setTimeout(function() {
-	preparePlayback();
-	allowMinimize();
-	allowClose();
-	waitForIframeThenRun();
-}, 500)
+$(document).ready( function() {
+	getChromeData( function() {
+                    insertPYT( function() {
+                    	makeDraggable();
+                    	allowMinimize();
+						allowClose();
+						waitForIframeThenRun();
+                    });
+				});
+});
 
 
