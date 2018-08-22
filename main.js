@@ -1,9 +1,10 @@
-// PYT.js
+// main.js
 // Justin Kufro
 // Started 11/1/2017
+
 var iframeWidthInt = 350;
 var iframeWidth = iframeWidthInt + "px"
-
+var minimizedWidth = 30;  // pixels
 
 var lastVid = {
 	embedUrl: "https://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1",
@@ -24,7 +25,7 @@ function makeDraggable() {
 																			         maxWidth: 1000,
 																			         minHeight: 200,
 																			         minWidth: 300,
-																			     	 alsoResize: "#pytPlayer"});
+																			     	 alsoResize: "#pvvPlayer"});
 
 	// this makes it so that when the user is dragging the window
 	// around the mouse doesn't get caught inside the iframe
@@ -38,18 +39,18 @@ function makeDraggable() {
 }
 
 
-function insertPYT(callback) {
-	var pytInject = document.createElement('div');
-	pytInject.setAttribute("id", "draggable");
-	pytInject.setAttribute("class", "ui-widget-content");
-	pytInject.setAttribute("style", "top:70px;right:10px;position:fixed;z-index:99900;width:" + iframeWidth + ";height:227px;background:rgba(218, 42, 42, 0.9);");
+function insertPVV(callback) {
+	var pvvInject = document.createElement('div');
+	pvvInject.setAttribute("id", "draggable");
+	pvvInject.setAttribute("class", "ui-widget-content");
+	pvvInject.setAttribute("style", "top:70px;right:10px;position:fixed;z-index:99900;width:" + iframeWidth + ";height:227px;background:rgba(218, 42, 42, 0.9);");
 
-	var PYT = document.createElement('iframe');
-	PYT.setAttribute("id", "pytPlayer");
-	PYT.setAttribute("type", "text/html");
-	PYT.setAttribute("style", "width:100%;height:87%;margin-top:15px;z-index:100100");
-	PYT.setAttribute("src", "https://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1");
-	PYT.setAttribute("frameborder","0");
+	var PVV = document.createElement('iframe');
+	PVV.setAttribute("id", "pvvPlayer");
+	PVV.setAttribute("type", "text/html");
+	PVV.setAttribute("style", "width:100%;height:87%;margin-top:15px;z-index:100100");
+	PVV.setAttribute("src", "https://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1");
+	PVV.setAttribute("frameborder","0");
 
 	minimizer = document.createElement('div');
 	minimizer.setAttribute("id", "minimizer");
@@ -67,19 +68,19 @@ function insertPYT(callback) {
 	resizer.setAttribute("id", "resizer");
 	resizer.setAttribute("type", "text/html");
 	resizer.setAttribute("style", "cursor:pointer;position:absolute;right:0px;bottom:0px;color:white;padding-left:5px;font-weight:900;");
-	resizer.setAttribute("src", chrome.extension.getURL("resizable.png"));
+	resizer.setAttribute("src", chrome.extension.getURL("resizable_white.png"));
 
 	bigDragger = document.createElement('div');
 	bigDragger.setAttribute("id", "bigDragger");
 	bigDragger.setAttribute("type", "text/html");
 	bigDragger.setAttribute("style", "margin-top:30px;z-index:100000;position:absolute;width:100%;height:100%");
 
-	pytInject.appendChild(minimizer);
-	pytInject.appendChild(closer);
-	pytInject.appendChild(resizer);
-	pytInject.appendChild(bigDragger);
-	pytInject.appendChild(PYT);
-	document.body.appendChild(pytInject);
+	pvvInject.appendChild(minimizer);
+	pvvInject.appendChild(closer);
+	pvvInject.appendChild(resizer);
+	pvvInject.appendChild(bigDragger);
+	pvvInject.appendChild(PVV);
+	document.body.appendChild(pvvInject);
 	document.getElementById("draggable").style.visibility = 'hidden';
 	document.getElementById("bigDragger").style.display = 'none';
 
@@ -92,13 +93,17 @@ function intToPixelValue(int) {
 	return int.toString() + "px";
 }
 
+function pixelToIntValue(value) {
+	return parseInt(value.slice(0, value.length - 2), 10);
+}
+
 
 function keepIframeInWindow() {
-	iframeWidthInt = parseInt(lastVid.width.slice(0, lastVid.width.length - 2)) + 20
+	iframeWidthInt = parseInt(lastVid.width.slice(0, lastVid.width.length - 2))
 	// find where the window currently is, saving the integer version and the string version
 	// also find the min and max values that the window can be in
 	var curLeft = getIframeLeft();
-	var curLeftInt = parseInt(curLeft.slice(0, curLeft.length - 2), 10);
+	var curLeftInt = pixelToIntValue(curLeft);
 
 	var minLeft = "0px";
 	var minLeftInt = 0;
@@ -107,13 +112,13 @@ function keepIframeInWindow() {
 	var maxLeftInt = parseInt(window.innerWidth - iframeWidthInt);
 
 	var curTop = getIframeTop();
-	var curTopInt = parseInt(curTop.slice(0, curTop.length - 2), 10);
+	var curTopInt = pixelToIntValue(curTop);
 
 	var minTop = "0px";
 	var minTopInt = 0;
 
 	var curBottom = getIframeBottom();
-	var curBottomInt = parseInt(curBottom.slice(0, curBottom.length - 2), 10);
+	var curBottomInt = pixelToIntValue(curBottom);
 
 	var minBottom = "0px";
 	var minBottomInt = 0;
@@ -152,32 +157,36 @@ function getId(url) {
 }
 
 
+function getIframe() {
+	iframe = document.getElementById("pvvPlayer").contentWindow.document.body;
+	if (iframe) {
+		return iframe.getElementsByTagName("video")[0];
+	}
+    return null
+}
+
 function playIframe() {
-	document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].play();
+	getIframe().play();
 }
 
 
 function pauseIframe() {
-	document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].pause();
+	getIframe().pause();
 }
 
 
 function seekToIframe(time) {
-	document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].currentTime = time;
+	getIframe().currentTime = time;
 }
 
 
 function getIframePaused() {
-	var isPaused = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].paused;
-
-	return isPaused;
+	return getIframe().paused
 }
 
 
 function getIframeTime() {
-	var time = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].currentTime;
-
-	return time;
+	return getIframe().currentTime;
 }
 
 
@@ -239,15 +248,7 @@ function saveTinyPlaybackStats() {
 
 
 function saveChromeData() {
-	chrome.storage.local.set({ "embedUrl": lastVid.embedUrl}, function(){ });
-	chrome.storage.local.set({ "time": lastVid.time}, function(){ });
-	chrome.storage.local.set({ "paused": lastVid.paused}, function(){ });
-	chrome.storage.local.set({ "left": lastVid.left}, function(){ });
-	chrome.storage.local.set({ "top": lastVid.top}, function(){ });
-	chrome.storage.local.set({ "minimized": lastVid.minimized}, function(){ });
-	chrome.storage.local.set({ "lastSave": lastVid.lastSave}, function(){ });
-	chrome.storage.local.set({ "width": lastVid.width}, function(){ });
-	chrome.storage.local.set({ "height": lastVid.height}, function(){ });
+	chrome.storage.local.set(lastVid, function(){ });
 }
 
 
@@ -256,15 +257,8 @@ function getChromeData(callback) {
 	// if this is true we just need to skip until the script does set the values
 	chrome.storage.local.get("width", function(result){
 		if (result.width) {
-			chrome.storage.local.get("embedUrl", function(result){ lastVid.embedUrl = result.embedUrl; });
-			chrome.storage.local.get("time", function(result){ lastVid.time = result.time; });
-			chrome.storage.local.get("paused", function(result){ lastVid.paused = result.paused; });
-			chrome.storage.local.get("left", function(result){ lastVid.left = result.left; });
-			chrome.storage.local.get("top", function(result){ lastVid.top = result.top; });
-			chrome.storage.local.get("minimized", function(result){ lastVid.minimized = result.minimized; });
-			chrome.storage.local.get("lastSave", function(result){ lastVid.lastSave = result.lastSave; });
-			chrome.storage.local.get("width", function(result){ lastVid.width = result.width; });
-			chrome.storage.local.get("height", function(result){ lastVid.height = result.height; });
+			keys = ["embedUrl", "time", "paused", "left", "top", "minimized", "lastSave", "width", "height"]
+			chrome.storage.local.get(keys, function(result){ lastVid = result; });
 		}
 	});
 	// run the callback
@@ -295,7 +289,6 @@ function isOnVideo() {
 	if (videoId == 'error') {
 		return false;
 	}
-
 	return true;
 }
 
@@ -309,10 +302,10 @@ function initIframeData(callback) {
 	// set the width and height
 	document.getElementById("draggable").style.width = lastVid.width
 	document.getElementById("draggable").style.height = lastVid.height
-	document.getElementById("pytPlayer").style.height = (parseInt(lastVid.height.slice(0, lastVid.height.length - 2)) - 28) + "px";
+	document.getElementById("pvvPlayer").style.height = (parseInt(lastVid.height.slice(0, lastVid.height.length - 2)) - 28) + "px";
 
 	// set the link
-	document.getElementById("pytPlayer").src = lastVid.embedUrl;
+	document.getElementById("pvvPlayer").src = lastVid.embedUrl;
 
 	// set the position
 	setIframePos(lastVid.left, lastVid.top);
@@ -336,7 +329,7 @@ function initIframeData(callback) {
 	else {
 		var neededTime = lastVid.time;
 		var initSeek = setInterval(function() {
-			var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].currentTime;
+			var element = getIframeTime();
 		    if (element != undefined && element != null) {
 		        clearInterval(initSeek);
 
@@ -351,7 +344,7 @@ function initIframeData(callback) {
 		if (lastVid.paused == true) {
 			var ensurePaused = setInterval(function() {
 				// keep checking for it until it exists
-				var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0].paused;
+				var element = getIframePaused();
 			    if (element == false) {
 			        clearInterval(ensurePaused);
 			        pauseIframe();
@@ -402,8 +395,8 @@ function getEmbedlink() {
 }
 
 function updateIframeLink() {
-	if ((getEmbedlink() != document.getElementById("pytPlayer").src) && (lastVid.embedUrl != null)) {
-		document.getElementById("pytPlayer").src = getEmbedlink();
+	if ((getEmbedlink() != document.getElementById("pvvPlayer").src) && (lastVid.embedUrl != null)) {
+		document.getElementById("pvvPlayer").src = getEmbedlink();
 	}
 }
 
@@ -411,7 +404,7 @@ function updateIframeLink() {
 // set the position of the window off to the side and change the icon
 function minimize() {
     document.getElementById("minimizer").innerHTML = "&lt;";
-    document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
+    document.getElementById("draggable").style.left = (window.innerWidth - minimizedWidth) + "px";
     lastVid.minimized = true;
 }
 
@@ -419,7 +412,7 @@ function minimize() {
 // set the position of the window back into view and change the icon
 function unminimize() {
     document.getElementById("minimizer").innerHTML = "&gt;";
-    document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt - 20) + "px";
+    document.getElementById("draggable").style.left = parseInt(window.innerWidth - iframeWidthInt) + "px";
     lastVid.minimized = false;
 }
 
@@ -484,7 +477,7 @@ function mainLoop() {
 			if (lastVid.minimized == false) {
 				keepIframeInWindow();
 			} else {
-				document.getElementById("draggable").style.left = (window.innerWidth - 40) + "px";
+				document.getElementById("draggable").style.left = (window.innerWidth - minimizedWidth) + "px";
 			}
 
 			showIframe();
@@ -498,9 +491,9 @@ function mainLoop() {
 function waitForIframeThenRun() {
 	// wait until the iframe is usable to continue
 	var iFrameExists = setInterval(function() {
-	   var element = document.getElementById("pytPlayer").contentWindow.document.body.getElementsByTagName("video")[0];
+	   var element = getIframe();
 
-	   // if the #pytPlayer (the iframe) element exists then break and start the main loop
+	   // if the #pvvPlayer (the iframe) element exists then break and start the main loop
 	   if (element != undefined) {
 	      initIframeData(mainLoop);
 	      clearInterval(iFrameExists); // don't let the loop happen again
@@ -514,7 +507,7 @@ function waitForIframeThenRun() {
 
 $(document).ready( function() {
 	getChromeData( function() {
-                    insertPYT( function() {
+                    insertPVV( function() {
                     	makeDraggable();
                     	allowMinimize();
 						allowClose();
@@ -522,5 +515,3 @@ $(document).ready( function() {
                     });
 				});
 });
-
-
