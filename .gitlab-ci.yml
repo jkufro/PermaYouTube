@@ -1,6 +1,6 @@
 package:
   stage: build
-  image: docker.io/python:3.6.4
+  image: kramos/alpine-zip:latest
   script:
     - zip pvv.zip manifest.json main.js jquery-3.3.1.min.js jquery-ui.js jquery-ui.css popup.html icon.png resizable_white.png
   artifacts:
