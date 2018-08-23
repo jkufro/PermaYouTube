@@ -2,6 +2,8 @@
   "manifest_version": 2,
 
   "name": "Persistent Video Viewer",
+  "short_name": "PVV",
+  "author": "Justin Kufro",
   "version": "1.3.2",
   "description": "Watch your videos while not on the viewer page.",
 
